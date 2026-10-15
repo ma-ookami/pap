@@ -1,0 +1,16 @@
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# エディタ
+.vscode/
+
+# Firebase CLI を使う場合
+.firebase/
+firebase-debug.log
+
+# firebase-config.js はここに書かないこと(GitHub Pages で必要)
+
+# 確認用の画像(Claude が作るもの)。コミットもデプロイもしない
+images/

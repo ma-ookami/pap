@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#15171c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="PaP">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<meta name="description" content="スマホでコピーしたものをPCへ、PCで見ているものをスマホへ。自分専用の受け渡し箱。">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>PaP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="logo" role="img" aria-label="PaP"><span>P</span><span class="la" aria-hidden="true"><svg class="ar r" viewBox="0 0 26 10"><path d="M2 5H23M18 1.2 23 5 18 8.8"/></svg><span class="a">a</span><svg class="ar l" viewBox="0 0 26 10"><path d="M24 5H3M8 1.2 3 5 8 8.8"/></svg></span><span class="b">P</span></div>
+    <div class="top-btns">
+      <button class="icon-btn" id="qrSiteBtn" hidden aria-label="ほかの端末をつなぐ" title="ほかの端末をつなぐ(QRコード)">⌗</button>
+      <button class="icon-btn" id="setBtn" hidden aria-label="設定" title="設定">⚙</button>
+    </div>
+  </header>
+
+  <section class="screen" id="sLoading">
+    <div class="spin" aria-hidden="true"></div>
+    <p class="muted center">読み込み中…</p>
+    <div id="slowNote" hidden class="notice">読み込みに時間がかかっています。<button class="linkbtn" data-reload>再読み込みする</button></div>
+  </section>
+
+  <section class="screen" id="sError" hidden>
+    <div class="hero"><p class="big">あれ?</p></div>
+    <div class="notice err" id="errMsg"></div>
+    <button class="btn primary" data-reload>再読み込み</button>
+  </section>
+
+  <section class="screen" id="sStart" hidden>
+    <div class="hero">
+      <p class="lead">PCとスマホを、ペアに。</p>
+      <p class="big logo" role="img" aria-label="PaP"><span>P</span><span class="la" aria-hidden="true"><svg class="ar r" viewBox="0 0 26 10"><path d="M2 5H23M18 1.2 23 5 18 8.8"/></svg><span class="a">a</span><svg class="ar l" viewBox="0 0 26 10"><path d="M24 5H3M8 1.2 3 5 8 8.8"/></svg></span><span class="b">P</span></p>
+      <p>コピーしたもの、見ているページ、写真やファイル。<br>入れたらすぐ、もう片方に届きます。</p>
+    </div>
+    <div class="notice" id="pendingNote" hidden>つなぐと、さっきのページを送ります。</div>
+    <div class="card stack">
+      <span class="label">はじめての1台目</span>
+      <button class="btn primary" id="newPairBtn">新しくはじめる</button>
+      <p class="hint">あとはもう1台で、この端末に出るQRコードを読み取るだけです。</p>
+    </div>
+    <div class="card stack">
+      <span class="label">もう1台とつなぐ</span>
+      <p class="hint">つないである端末の右上 <b>⌗</b> を押すと、QRコードと8文字のコードが出ます。QRはカメラで読み取るだけ。ホーム画面のアプリでは、コードを入れてください。</p>
+      <form class="code-row" id="codeForm">
+        <input id="codeIn" placeholder="ABCD-EFGH" maxlength="9" autocapitalize="characters" autocomplete="off" spellcheck="false" aria-label="8文字のコード">
+        <button class="btn" id="codeBtn">つなぐ</button>
+      </form>
+      <button class="btn ghost google" id="googleFindBtn" type="button"><span class="g" aria-hidden="true">G</span>Google で守っているペアを開く</button>
+    </div>
+  </section>
+
+  <section class="screen" id="sLocked" hidden>
+    <div class="hero"><p class="big">🔒</p></div>
+    <div class="notice">このペアは <b>Google アカウントで守られています</b>。守っているアカウントでログインしてください。</div>
+    <button class="btn primary google" id="lockedSignIn"><span class="g" aria-hidden="true">G</span>Google でログイン</button>
+    <button class="btn ghost" id="lockedLeave">このペアから外れる</button>
+  </section>
+
+  <section class="screen main" id="sMain" hidden>
+    <div class="col col-send">
+      <div class="card send" id="sendCard">
+        <button class="btn primary big-send" id="clipBtn"><span aria-hidden="true">📋</span> コピーした内容を送る</button>
+        <textarea id="txt" rows="3" placeholder="ここに書く・貼り付ける(画像もOK)" aria-label="送る内容"></textarea>
+        <div class="send-row">
+          <label class="btn ghost file-btn" title="写真・ファイルを選ぶ"><span aria-hidden="true">📎</span> 写真・ファイル<input type="file" id="fileIn" multiple hidden></label>
+          <button class="btn go" id="sendBtn" disabled>送る</button>
+        </div>
+        <div class="progress" id="progress" hidden><div class="bar" id="progBar"></div><span id="progText"></span></div>
+        <p class="hint pc-only">PCでは、どこでも <kbd>Ctrl</kbd>+<kbd>V</kbd> ですぐ送れます。ファイルはこの画面にドラッグ。入力欄では <kbd>Ctrl</kbd>+<kbd>Enter</kbd> で送信。</p>
+      </div>
+      <div class="card tip pc-only" id="bmTip">
+        <span class="label">見ているページをスマホへ</span>
+        <p>この青いボタンをブックマークバーへドラッグ。どのページでも、押すだけでURLと選んだ文字がPaPに届きます。</p>
+        <a class="bm" id="bmLink" href="#" title="ブックマークバーへドラッグ">➤ PaPに送る</a>
+      </div>
+    </div>
+
+    <div class="col col-list">
+      <div class="list-head">
+        <h2 id="listTitle">届いたもの</h2>
+        <input type="search" id="search" placeholder="さがす" aria-label="さがす" hidden>
+      </div>
+      <div id="pinned" class="items"></div>
+      <div id="items" class="items"></div>
+      <p class="empty" id="empty" hidden>まだ何もありません。<br>コピーした文字や写真を送ってみましょう。</p>
+      <button class="btn ghost" id="moreBtn" hidden>もっと前を見る</button>
+      <p class="hint center" id="keepNote"></p>
+    </div>
+  </section>
+</div>
+
+<!-- settings -->
+<div class="sheet-bg" id="shSet" hidden><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="setTitle">
+  <div class="sheet-head"><h2 id="setTitle">設定</h2><button class="icon-btn" data-close aria-label="閉じる">✕</button></div>
+  <div class="stack">
+    <label class="field"><span class="label">この端末の名前</span>
+      <input id="devName" maxlength="16" autocomplete="off"></label>
+    <div class="field"><span class="label">自動で消す(📌 したものは残ります)</span>
+      <div class="seg" id="keepPick" role="radiogroup">
+        <button data-k="1" role="radio">1日</button><button data-k="7" role="radio">1週間</button><button data-k="30" role="radio">1か月</button><button data-k="0" role="radio">消さない</button>
+      </div></div>
+    <div class="field"><span class="label">見た目</span>
+      <div class="seg" id="themePick" role="radiogroup">
+        <button data-t="auto" role="radio">自動</button><button data-t="dark" role="radio">ダーク</button><button data-t="light" role="radio">ライト</button>
+      </div></div>
+    <div class="field"><span class="label">スマホのホーム画面に置く</span>
+      <p class="hint">iPhone:Safari の共有ボタン →「ホーム画面に追加」。Android:Chrome の「︙」→「ホーム画面に追加」。iPhone のホーム画面アプリは Safari と別扱いなので、最初に一度コードを入れてつなぎます。Android ではほかのアプリの「共有」からPaPに送れるようになります。</p></div>
+    <div class="field stack"><span class="label">ペア</span>
+      <button class="btn ghost" id="pairMoreBtn">⌗ ほかの端末をつなぐ</button>
+      <div class="guard" id="guardBox">
+        <p class="who" id="guardText"></p>
+        <p class="hint" id="guardHint"></p>
+        <button class="btn ghost google" id="guardBtn"><span class="g" aria-hidden="true">G</span><span id="guardBtnText"></span></button>
+      </div>
+      <button class="btn ghost" id="leaveBtn">この端末をペアから外す</button></div>
+    <div class="danger-zone">
+      <span class="label">危険な操作</span>
+      <button class="btn danger" id="wipeBtn">📌 以外をすべて消す</button>
+      <button class="btn danger" id="remakeBtn">ペアを作り直す</button>
+      <p class="hint">QRコードを誰かに見られたときなどに。中身はすべて消え、ほかの端末はつなぎ直しになります。</p>
+    </div>
+  </div>
+</div></div>
+
+<!-- QR code -->
+<div class="sheet-bg" id="shQr" hidden><div class="sheet qr-sheet" role="dialog" aria-modal="true" aria-labelledby="qrTitle">
+  <div class="sheet-head"><h2 id="qrTitle">QRコード</h2><button class="icon-btn" data-close aria-label="閉じる">✕</button></div>
+  <div class="qr-box" id="qrBox"></div>
+  <p class="code-big" id="qrCode" hidden></p>
+  <p class="qr-text" id="qrText"></p>
+  <p class="hint center" id="qrHint"></p>
+</div></div>
+
+<!-- image viewer -->
+<div class="viewer" id="viewer" hidden>
+  <img id="viewImg" alt="">
+  <div class="viewer-bar">
+    <button class="btn" id="viewCopy">コピー</button>
+    <button class="btn" id="viewSave">保存</button>
+    <button class="btn ghost" data-close-viewer>閉じる</button>
+  </div>
+</div>
+
+<div class="dropping" id="dropping" hidden><p>ここに落として送る</p></div>
+<div class="offline" id="offline" role="status" hidden>接続が切れています。つながると自動で続きます</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://www.gstatic.com/firebasejs/12.19.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.19.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.19.0/firebase-app-check-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="js/base.js"></script>
+<script src="js/files.js"></script>
+<script src="js/pair.js"></script>
+<script src="js/data.js"></script>
+<script src="js/render.js"></script>
+<script src="js/events.js"></script>
+<script src="js/boot.js"></script>
+</body>
+</html>

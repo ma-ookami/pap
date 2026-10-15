@@ -1,0 +1,103 @@
+rules_version = '2';
+
+// PaP のデータを守るルール。
+// - PCとスマホは「ペア」でつながる。ペアの鍵(pairs/<鍵>)は推測できない長い文字列で、知っている端末だけが中を開ける。
+//   ペアの一覧を取り出すことはできない
+// - ほかの端末をつなぐときは、10分だけ使える8文字のコード(codes/<コード>)で鍵を渡す(QRコードの中身もこれ)
+// - 「Google で守る」をオンにしたペアは、鍵を知っていても、その Google アカウントでログインした端末しか開けない
+// - users/<uid> は Google でログインした本人だけ:そのアカウントで守っているペアの鍵(新しい端末で探すため)
+// - 保存できる項目と長さは、アプリが使うものだけに制限する
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function google() { return signedIn() && request.auth.token.firebase.sign_in_provider == 'google.com'; }
+    function nowMs() { return request.time.toMillis(); }
+    function pairPath(k) { return /databases/$(database)/documents/pairs/$(k); }
+    // this pair, as stored: open to anyone holding the key, unless it is guarded by a Google account
+    function openTo(p) { return signedIn() && (!('owner' in p) || p.owner == request.auth.uid); }
+    function canUse(k) { return openTo(get(pairPath(k)).data); }
+    function optStr(d, k, n) { return !(k in d) || (d[k] is string && d[k].size() <= n); }
+    function optInt(d, k, lo, hi) { return !(k in d) || (d[k] is int && d[k] >= lo && d[k] <= hi); }
+
+    match /pairs/{k} {
+      // reading the pair itself tells the app whether it exists and is guarded (no contents)
+      allow get: if signedIn();
+      allow create: if signedIn()
+        && k.matches('[a-z0-9]{24,40}')
+        && request.resource.data.keys().hasOnly(['keep', 'at'])
+        && request.resource.data.keep in [0, 1, 7, 30]
+        && request.resource.data.at is int;
+      allow update: if openTo(resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['keep', 'owner'])
+        && request.resource.data.keep in [0, 1, 7, 30]
+        && (
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['owner'])
+          // guard with my Google account
+          || (!('owner' in resource.data) && google() && request.resource.data.owner == request.auth.uid)
+          // stop guarding (only that account)
+          || (('owner' in resource.data) && !('owner' in request.resource.data))
+        );
+      allow delete: if openTo(resource.data);
+
+      // keep the limits in step with js/base.js
+      function validItem(d) {
+        return d.keys().hasAll(['kind', 'from', 'did', 'dev', 'at', 'pinned', 'ready'])
+          && d.keys().hasOnly(['kind', 'text', 'title', 'url', 'name', 'mime', 'size', 'parts', 'thumb', 'w', 'h',
+                               'from', 'did', 'dev', 'at', 'pinned', 'ready'])
+          && d.kind in ['text', 'link', 'image', 'file']
+          && optStr(d, 'text', 100000) && optStr(d, 'title', 500) && optStr(d, 'url', 4000)
+          && optStr(d, 'name', 200) && optStr(d, 'mime', 100) && optStr(d, 'thumb', 300000)
+          && optInt(d, 'size', 0, 10800000) && optInt(d, 'parts', 1, 15)
+          && optInt(d, 'w', 0, 100000) && optInt(d, 'h', 0, 100000)
+          && d.from is string && d.from.size() >= 1 && d.from.size() <= 24
+          && d.did is string && d.did.size() <= 40
+          && d.dev in ['phone', 'pc']
+          && d.at is int && d.at > nowMs() - 3600000 && d.at < nowMs() + 3600000
+          && d.pinned is bool && d.ready is bool
+          && (d.kind != 'link' || (d.url is string && d.url.matches('https?://.+')))
+          && (d.kind in ['text', 'link'] || ('parts' in d && 'size' in d && 'name' in d));
+      }
+
+      match /items/{id} {
+        allow read, delete: if canUse(k);
+        allow create: if canUse(k) && validItem(request.resource.data);
+        // only 📌 and "送信中 → 届いた" change afterwards
+        allow update: if canUse(k)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pinned', 'ready'])
+          && request.resource.data.pinned is bool && request.resource.data.ready is bool;
+      }
+
+      // the pieces of a file: blobs/<item id>_<0..14>
+      match /blobs/{id} {
+        allow read, delete: if canUse(k);
+        allow create: if canUse(k)
+          && id.matches('[A-Za-z0-9]+_([0-9]|1[0-4])')
+          && request.resource.data.keys().hasOnly(['d'])
+          && request.resource.data.d is string
+          && request.resource.data.d.size() <= 960000;
+      }
+    }
+
+    // a short-lived code that hands the key to another device (made only by a device that can open the pair)
+    match /codes/{c} {
+      allow get: if signedIn() && resource.data.exp > nowMs();
+      allow create: if signedIn()
+        && c.matches('[A-HJ-NP-Z2-9]{8}')
+        && request.resource.data.keys().hasOnly(['key', 'exp'])
+        && request.resource.data.key is string
+        && request.resource.data.exp is int
+        && request.resource.data.exp > nowMs() && request.resource.data.exp <= nowMs() + 900000
+        && canUse(request.resource.data.key);
+      allow delete: if signedIn();
+    }
+
+    // which pair this Google account guards
+    match /users/{uid} {
+      allow get, delete: if google() && request.auth.uid == uid;
+      allow create, update: if google() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['pair'])
+        && request.resource.data.pair is string && request.resource.data.pair.size() <= 40;
+    }
+  }
+}
