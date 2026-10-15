@@ -89,10 +89,17 @@ function boot(){
     if (emu){
       auth.useEmulator("http://127.0.0.1:9099", { disableWarnings:true }); fs.useEmulator("127.0.0.1", 8085);
       // stands in for the Google popup: window.emuSub picks the account
-      window.emuGoogle = () => auth.signInWithCredential(firebase.auth.GoogleAuthProvider.credential(JSON.stringify({ sub:window.emuSub || "g1", email:(window.emuSub || "g1") + "@example.com", email_verified:true })));
+      window.emuGoogle = link => {
+        const cred = firebase.auth.GoogleAuthProvider.credential(JSON.stringify({ sub:window.emuSub || "g1", email:(window.emuSub || "g1") + "@example.com", email_verified:true }));
+        return link ? auth.currentUser.linkWithCredential(cred).catch(e => { e.credential = cred; throw e; }) : auth.signInWithCredential(cred);
+      };
     }
     S.db = fs;
-    auth.getRedirectResult().catch(e => { console.warn(e); toast("ログインできませんでした。もう一度どうぞ", true); });
+    auth.getRedirectResult().catch(e => {
+      // linking came back with an account that already exists: switch to it
+      if (e && e.code === "auth/credential-already-in-use" && e.credential) return auth.signInWithCredential(e.credential).then(afterGoogle);
+      console.warn(e); toast("ログインできませんでした。もう一度どうぞ", true);
+    });
     let started = false, signedOut = false;
     auth.onAuthStateChanged(u => {
       // every device has a hidden anonymous account; Google is only for guarding a pair
@@ -115,7 +122,8 @@ function boot(){
 async function start(code){
   let back = false;
   try { back = !!sessionStorage.getItem("pap.google"); } catch {}
-  if (code){ await useCode(code); if (S.pair === undefined) openPair(); return; }
+  // opened from another device's QR: choose this device's name, then join
+  if (code){ S.joinCode = code; $("joinName").value = ls.get("devName", "") || defaultDevName(); S.pair = null; render(); return; }
   if (back && isGoogle()) return afterGoogle();             // came back from the Google page
   if (!ls.get("key", null) && isGoogle()) return afterGoogle();
   openPair();

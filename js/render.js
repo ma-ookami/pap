@@ -7,13 +7,14 @@ const hiddenIds = new Set();   // deleted here, waiting out the 取り消す toa
 function screen(){
   if (S.fatal) return "sError";
   if (!S.db || !S.user || S.pair === "loading" || S.pair === undefined) return "sLoading";
+  if (S.joinCode) return "sJoin";
   if (!S.pair) return "sStart";
   if (S.pair === "locked") return "sLocked";
   return "sMain";
 }
 function render(){
   const sc = screen();
-  for (const id of ["sLoading","sError","sStart","sLocked","sMain"]) $(id).hidden = id !== sc;
+  for (const id of ["sLoading","sError","sJoin","sStart","sLocked","sMain"]) $(id).hidden = id !== sc;
   $("setBtn").hidden = $("qrSiteBtn").hidden = sc !== "sMain";
   if (sc === "sError") $("errMsg").textContent = S.fatal;
   if (sc === "sStart") $("pendingNote").hidden = !pendingAdd;
@@ -24,6 +25,7 @@ function render(){
 // ---------- main ----------
 function renderMain(){
   renderSend();
+  renderDevices();
   const q = S.q.trim().toLowerCase();
   const match = it => !q || [it.text, it.title, it.url, it.name, it.from].some(s => s && s.toLowerCase().includes(q));
   const pinned = S.pinned.filter(it => !hiddenIds.has(it.id) && match(it));
@@ -52,6 +54,26 @@ function renderSend(){
   $("clipBtn").disabled = busy;
   $("sendBtn").textContent = busy ? "送信中…" : "送る";
 }
+
+// ---------- つながっている端末: "📱 1台接続中:まさやのiPhone" ----------
+const devIcon = d => d.kind === "phone" ? "📱" : "💻";
+function renderDevices(){
+  const others = S.devices.filter(d => d.id !== DEV.id);
+  const bar = $("devBar");
+  bar.classList.toggle("alone", !others.length);
+  if (!others.length) bar.replaceChildren(h("span", { class:"dot" }), h("b", null, "まだこの端末だけです"), h("span", { class:"go" }, "⌗ つなぐ"));
+  else bar.replaceChildren(h("span", { class:"dot on" }), h("b", null, `${others.length}台接続中`),
+    ...others.map(d => h("span", { class:"chip" }, devIcon(d) + " " + d.name)), h("span", { class:"go" }, "管理"));
+  bar.title = others.length ? "つながっている端末を見る" : "ほかの端末をつなぐ";
+  if (!$("shDev").hidden) renderDevList();
+}
+function renderDevList(){
+  $("devList").replaceChildren(...S.devices.map(d => h("li", { class:"dev-row" + (d.id === DEV.id ? " me" : "") },
+    h("span", { class:"dev-ic", "aria-hidden":"true" }, devIcon(d)),
+    h("span", { class:"dev-txt" }, h("b", null, d.name), h("small", null, d.id === DEV.id ? "この端末" : "最後に使ったのは " + agoText(d.seen))),
+    d.id === DEV.id ? null : h("button", { type:"button", class:"act", "data-kick":d.id }, "外す"))));
+}
+function openDevices(){ renderDevList(); openSheet("shDev"); }
 
 // ---------- one item (cards are reused when nothing about them changed) ----------
 const cards = new Map();

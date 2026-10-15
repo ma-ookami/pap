@@ -123,6 +123,28 @@ document.querySelectorAll("[data-reload]").forEach(b => b.addEventListener("clic
 $("qrSiteBtn").addEventListener("click", showPairQr);
 $("pairMoreBtn").addEventListener("click", showPairQr);
 
+// ---------- つながっている端末 ----------
+$("devBar").addEventListener("click", () => S.devices.some(d => d.id !== DEV.id) ? openDevices() : showPairQr());
+$("devAddBtn").addEventListener("click", showPairQr);
+$("devList").addEventListener("click", async e => {
+  const b = e.target.closest("[data-kick]"); if (!b) return;
+  const d = S.devices.find(x => x.id === b.dataset.kick); if (!d) return;
+  if (!confirm(`「${d.name}」をペアから外しますか?\nその端末は、新しいQRコードを読み取らないかぎり戻れません`)) return;
+  try { await kickDevice(d); toast(`${d.name} を外しました`); } catch (e){ writeError(e); }
+});
+
+// ---------- join (opened from a QR): pick this device's name first ----------
+$("joinForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const name = $("joinName").value.trim(); if (!name) return;
+  $("joinBtn").disabled = true;
+  const code = S.joinCode;
+  if (await useCode(code, name)) S.joinCode = null;
+  else { S.joinCode = null; await openPair(); }
+  $("joinBtn").disabled = false; render();
+});
+$("joinCancel").addEventListener("click", () => { S.joinCode = null; openPair(); });
+
 // ---------- start / locked screens ----------
 $("newPairBtn").addEventListener("click", async () => {
   $("newPairBtn").disabled = true;
@@ -136,7 +158,7 @@ $("codeIn").addEventListener("input", e => {
 $("codeForm").addEventListener("submit", async e => {
   e.preventDefault();
   $("codeBtn").disabled = true;
-  await useCode($("codeIn").value);
+  await useCode($("codeIn").value, $("codeName").value.trim() || defaultDevName());
   $("codeBtn").disabled = false;
 });
 $("googleFindBtn").addEventListener("click", () => googleSignIn("find"));
@@ -156,7 +178,7 @@ function renderSettings(){
   $("guardBtnText").textContent = mine ? "Google の保護を外す" : "Google アカウントで守る";
 }
 $("setBtn").addEventListener("click", () => { renderSettings(); openSheet("shSet"); });
-$("devName").addEventListener("change", e => { ls.set("devName", e.target.value.trim().slice(0, 16)); toast("保存しました"); });
+$("devName").addEventListener("change", e => { ls.set("devName", e.target.value.trim().slice(0, 16)); registerDevice(true); toast("保存しました"); });
 $("keepPick").addEventListener("click", e => {
   const b = e.target.closest("button[data-k]"); if (!b) return;
   S.keep = +b.dataset.k; renderSettings(); render();
@@ -199,6 +221,6 @@ $("wipeBtn").addEventListener("click", async () => {
 S.seenAt = ls.get("seen", 0) || Date.now();
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) ls.set("seen", Date.now());
-  else { S.seenAt = ls.get("seen", S.seenAt); S.unseen = 0; render(); }
+  else { S.seenAt = ls.get("seen", S.seenAt); S.unseen = 0; render(); registerDevice(); }
 });
 setInterval(() => { if (!document.hidden && screen() === "sMain") render(); }, 60000);

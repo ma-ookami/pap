@@ -1,22 +1,30 @@
 rules_version = '2';
 
 // PaP のデータを守るルール。
-// - PCとスマホは「ペア」でつながる。ペアの鍵(pairs/<鍵>)は推測できない長い文字列で、知っている端末だけが中を開ける。
+// - PCとスマホは「ペア」でつながる(pairs/<鍵>)。中を開けるのは、ペアに登録された端末(members/<uid>)だけ。
 //   ペアの一覧を取り出すことはできない
-// - ほかの端末をつなぐときは、10分だけ使える8文字のコード(codes/<コード>)で鍵を渡す(QRコードの中身もこれ)
-// - 「Google で守る」をオンにしたペアは、鍵を知っていても、その Google アカウントでログインした端末しか開けない
+// - 登録できるのは、ペアを作った端末と、10分だけ使える8文字のコード(codes/<コード>)を持ってきた端末。
+//   QRコードの中身もこのコード。コードは1回使うと消える
+// - 登録された端末は、ほかの端末を外せる(外された端末は、新しいコードなしでは戻れない)
+// - devices/<端末ID> は画面に出す「つながっている端末」の名前と種類
+// - 「Google で守る」をオンにしたペアは、登録されていても、その Google アカウントでログインした端末しか開けない
 // - users/<uid> は Google でログインした本人だけ:そのアカウントで守っているペアの鍵(新しい端末で探すため)
 // - 保存できる項目と長さは、アプリが使うものだけに制限する
 service cloud.firestore {
   match /databases/{database}/documents {
 
     function signedIn() { return request.auth != null; }
-    function google() { return signedIn() && request.auth.token.firebase.sign_in_provider == 'google.com'; }
+    // signed in with Google, or an anonymous device that linked its Google account
+    function google() { return signedIn() && 'google.com' in request.auth.token.firebase.identities; }
     function nowMs() { return request.time.toMillis(); }
     function pairPath(k) { return /databases/$(database)/documents/pairs/$(k); }
-    // this pair, as stored: open to anyone holding the key, unless it is guarded by a Google account
-    function openTo(p) { return signedIn() && (!('owner' in p) || p.owner == request.auth.uid); }
-    function canUse(k) { return openTo(get(pairPath(k)).data); }
+    function memberPath(k) { return /databases/$(database)/documents/pairs/$(k)/members/$(request.auth.uid); }
+    function codePath(c) { return /databases/$(database)/documents/codes/$(c); }
+    // guarded by a Google account: only that account. Otherwise: devices registered in the pair
+    function openTo(k, p) {
+      return signedIn() && (('owner' in p) ? p.owner == request.auth.uid : exists(memberPath(k)));
+    }
+    function canUse(k) { return openTo(k, get(pairPath(k)).data); }
     function optStr(d, k, n) { return !(k in d) || (d[k] is string && d[k].size() <= n); }
     function optInt(d, k, lo, hi) { return !(k in d) || (d[k] is int && d[k] >= lo && d[k] <= hi); }
 
@@ -25,10 +33,12 @@ service cloud.firestore {
       allow get: if signedIn();
       allow create: if signedIn()
         && k.matches('[a-z0-9]{24,40}')
-        && request.resource.data.keys().hasOnly(['keep', 'at'])
+        && request.resource.data.keys().hasOnly(['keep', 'at', 'creator'])
+        && request.resource.data.creator == request.auth.uid
         && request.resource.data.keep in [0, 1, 7, 30]
-        && request.resource.data.at is int;
-      allow update: if openTo(resource.data)
+        && request.resource.data.at is int
+        && existsAfter(memberPath(k));
+      allow update: if openTo(k, resource.data)
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['keep', 'owner'])
         && request.resource.data.keep in [0, 1, 7, 30]
         && (
@@ -38,7 +48,38 @@ service cloud.firestore {
           // stop guarding (only that account)
           || (('owner' in resource.data) && !('owner' in request.resource.data))
         );
-      allow delete: if openTo(resource.data);
+      allow delete: if openTo(k, resource.data);
+
+      // the devices allowed in (by Firebase uid)
+      match /members/{u} {
+        allow get: if u == request.auth.uid || canUse(k);
+        allow delete: if canUse(k) || u == request.auth.uid;
+        allow create: if signedIn() && u == request.auth.uid
+          && request.resource.data.keys().hasOnly(['at', 'code'])
+          && request.resource.data.at is int
+          && (
+            // the device that made the pair (in the same write)
+            getAfter(pairPath(k)).data.creator == request.auth.uid
+            // brought a live code for this pair, and uses it up in the same write
+            || ('code' in request.resource.data
+                && get(codePath(request.resource.data.code)).data.key == k
+                && get(codePath(request.resource.data.code)).data.exp > nowMs()
+                && !existsAfter(codePath(request.resource.data.code)))
+            // the Google account guarding the pair
+            || getAfter(pairPath(k)).data.get('owner', '') == request.auth.uid
+          );
+      }
+
+      // what the screen shows as "つながっている端末"
+      match /devices/{d} {
+        allow read, delete: if canUse(k);
+        allow create, update: if canUse(k)
+          && request.resource.data.keys().hasOnly(['name', 'kind', 'uid', 'at', 'seen'])
+          && request.resource.data.name is string && request.resource.data.name.size() >= 1 && request.resource.data.name.size() <= 24
+          && request.resource.data.kind in ['phone', 'pc']
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.at is int && request.resource.data.seen is int;
+      }
 
       // keep the limits in step with js/base.js
       function validItem(d) {

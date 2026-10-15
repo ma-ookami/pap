@@ -14,7 +14,7 @@ const KEEPS = [1, 7, 30, 0];         // days; 0 = keep forever
 
 const S = {
   db:null, user:null, owner:null, fatal:null,
-  items:[], pinned:[], itemsReady:false, pinnedReady:false, limit:PAGE, hasMore:false,
+  items:[], pinned:[], devices:[], joinCode:null, itemsReady:false, pinnedReady:false, limit:PAGE, hasMore:false,
   keep:30, settingsReady:false,
   q:"", sending:false,
   seenAt:0, unseen:0, open:{},

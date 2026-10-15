@@ -56,12 +56,27 @@
     <div class="card stack">
       <span class="label">もう1台とつなぐ</span>
       <p class="hint">つないである端末の右上 <b>⌗</b> を押すと、QRコードと8文字のコードが出ます。QRはカメラで読み取るだけ。ホーム画面のアプリでは、コードを入れてください。</p>
+      <input class="name-in" id="codeName" maxlength="16" autocomplete="off" placeholder="この端末の名前(例:まさやのiPhone)" aria-label="この端末の名前">
       <form class="code-row" id="codeForm">
         <input id="codeIn" placeholder="ABCD-EFGH" maxlength="9" autocapitalize="characters" autocomplete="off" spellcheck="false" aria-label="8文字のコード">
         <button class="btn" id="codeBtn">つなぐ</button>
       </form>
       <button class="btn ghost google" id="googleFindBtn" type="button"><span class="g" aria-hidden="true">G</span>Google で守っているペアを開く</button>
     </div>
+  </section>
+
+  <section class="screen" id="sJoin" hidden>
+    <div class="hero">
+      <p class="lead">もう1台とつなぎます</p>
+      <p class="big">🔗</p>
+    </div>
+    <form class="card stack" id="joinForm">
+      <label class="field"><span class="label">この端末の名前</span>
+        <input id="joinName" maxlength="16" autocomplete="off" required></label>
+      <p class="hint">つながっている端末の画面に、この名前が出ます(例:まさやのiPhone)。</p>
+      <button class="btn primary" id="joinBtn">この名前でつなぐ</button>
+      <button class="linkbtn" type="button" id="joinCancel">やめる</button>
+    </form>
   </section>
 
   <section class="screen" id="sLocked" hidden>
@@ -72,6 +87,7 @@
   </section>
 
   <section class="screen main" id="sMain" hidden>
+    <button type="button" class="dev-bar" id="devBar"></button>
     <div class="col col-send">
       <div class="card send" id="sendCard">
         <button class="btn primary big-send" id="clipBtn"><span aria-hidden="true">📋</span> コピーした内容を送る</button>
@@ -134,6 +150,16 @@
       <button class="btn danger" id="remakeBtn">ペアを作り直す</button>
       <p class="hint">QRコードを誰かに見られたときなどに。中身はすべて消え、ほかの端末はつなぎ直しになります。</p>
     </div>
+  </div>
+</div></div>
+
+<!-- devices in the pair -->
+<div class="sheet-bg" id="shDev" hidden><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="devTitle">
+  <div class="sheet-head"><h2 id="devTitle">つながっている端末</h2><button class="icon-btn" data-close aria-label="閉じる">✕</button></div>
+  <ul class="dev-list" id="devList"></ul>
+  <div class="stack">
+    <button class="btn ghost" id="devAddBtn">⌗ ほかの端末をつなぐ</button>
+    <p class="hint">知らない端末があったら「外す」を押してください。外した端末は、新しいQRコードを読み取らないかぎり戻れません。</p>
   </div>
 </div></div>
 

@@ -34,6 +34,7 @@ function subscribe(){
     if (S.owner && (!S.user || S.owner !== S.user.uid)) return openPair();
     render(); cleanup();
   }, onSubError));
+  unsubs.push(watchDevices());
   unsubs.push(col("items").where("pinned", "==", true).onSnapshot(q => {
     S.pinned = q.docs.map(d => cleanItem(d.id, d.data())).filter(Boolean).sort((a, b) => b.at - a.at);
     S.pinnedReady = true; render();
