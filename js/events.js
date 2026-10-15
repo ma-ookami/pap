@@ -120,6 +120,22 @@ document.querySelectorAll(".sheet-bg").forEach(bg => bg.addEventListener("click"
 document.addEventListener("keydown", e => { if (e.key === "Escape"){ closeSheets(); closeViewer(); } });
 document.querySelectorAll("[data-reload]").forEach(b => b.addEventListener("click", () => location.reload()));
 
+// ---------- back to the top ----------
+// the logo: the top of the list when paired, otherwise the first screen
+$("homeLink").addEventListener("click", e => {
+  e.preventDefault();
+  closeSheets(); closeViewer();
+  if (screen() === "sMain") return window.scrollTo({ top:0, behavior:"smooth" });
+  if (S.fatal || screen() === "sLoading") return;   // the buttons on those screens say what happens
+  S.joinCode = null; openPair();
+});
+// stuck (an error, or loading forever): forget the pair on this device only and start over
+document.querySelectorAll("[data-home]").forEach(b => b.addEventListener("click", () => {
+  if (!confirm("この端末だけペアから外れて、最初の画面にもどります(中身は消えません)。よろしいですか?")) return;
+  ls.set("key", null);
+  location.href = location.pathname;
+}));
+
 $("qrSiteBtn").addEventListener("click", showPairQr);
 $("pairMoreBtn").addEventListener("click", showPairQr);
 

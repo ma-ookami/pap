@@ -28,7 +28,7 @@ async function openPair(){
     const s = await pairRef().get();
     d = s.exists ? s.data() : null;
     if (d) member = (await memberRef().get()).exists;
-  } catch (e){ console.warn(e); return fail("データベースにつながりませんでした。通信を確認して再読み込みしてください。"); }
+  } catch (e){ console.warn(e); return fail("データベースにつながりませんでした。通信を確認して再読み込みしてください。", e); }
   if (!d) return dropPair("ペアが見つかりませんでした。もう一度つないでください");
   S.owner = str(d.owner, 128);
   if (S.owner && S.owner !== S.user.uid){ S.pair = "locked"; return render(); }

@@ -39,10 +39,18 @@ async function fetchSig(){
   const texts = await Promise.all(pageFiles().map(async f => { const r = await fetch(f, { cache:"no-store" }); if (!r.ok) throw new Error(f); return r.text(); }));
   return sigOf(texts.join("\n"));
 }
+// Right after an upload, GitHub's servers can hand out old and new files in turn, so a version is
+// trusted only when two checks agree, and each version reloads the page at most once.
+let sigSeen = null;
 document.addEventListener("visibilitychange", async () => {
   if (document.hidden || !pageSig) return;
   let now = null; try { now = await fetchSig(); } catch {}
-  if (now && now !== pageSig && !S.sending && !$("txt").value.trim()) location.reload();
+  if (!now || now === pageSig){ sigSeen = null; return; }
+  if (sigSeen !== now){ sigSeen = now; return; }
+  let tried = null; try { tried = sessionStorage.getItem("pap.reloaded"); } catch {}
+  if (tried === now || S.sending || $("txt").value.trim()) return;
+  try { sessionStorage.setItem("pap.reloaded", now); } catch {}
+  location.reload();
 });
 
 // ---------- theme ----------

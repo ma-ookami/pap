@@ -106,7 +106,9 @@ async function copyText(text, okMsg){
   toast(ok ? (okMsg || "コピーしました") : "コピーできませんでした。もう一度押してください", !ok);
 }
 
-function fail(msg){
-  S.fatal = msg;
+// stop and say why; the error code helps when asking for help
+function fail(msg, e){
+  stopSubs();
+  S.fatal = msg + (e && e.code ? `(${e.code})` : "");
   render();
 }

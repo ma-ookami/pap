@@ -18,11 +18,18 @@ const col = n => S.db.collection(`pairs/${S.key}/${n}`);
 const pdoc = p => S.db.doc(`pairs/${S.key}/${p}`);
 let unsubs = [], itemsUnsub = null;
 function stopSubs(){ unsubs.concat(itemsUnsub || []).forEach(u => { try{ u(); }catch{} }); unsubs = []; itemsUnsub = null; }
+let reopened = [];
 function onSubError(e){
   console.warn(e);
-  // guarded by Google from another device, or the pair was made again
-  if (e && e.code === "permission-denied") return openPair();
-  fail("データを読み込めませんでした。通信を確認して再読み込みしてください。");
+  if (e && e.code === "permission-denied"){
+    // taken out of the pair, guarded by Google from another device, or the pair was made again: look again.
+    // Still refused right after looking again means the rules don't match this version: stop instead of looping
+    reopened = reopened.filter(t => Date.now() - t < 30e3);
+    if (reopened.length >= 2) return fail("データを読み込む許可がありません。Firebase のルールが古い可能性があります(README の手順3で firestore.rules を貼り直してください)。", e);
+    reopened.push(Date.now());
+    return openPair();
+  }
+  fail("データを読み込めませんでした。通信を確認して再読み込みしてください。", e);
 }
 function subscribe(){
   stopSubs();

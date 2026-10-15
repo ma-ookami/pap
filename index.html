@@ -22,7 +22,7 @@
 <body>
 <div class="wrap">
   <header class="top">
-    <div class="logo" role="img" aria-label="PaP"><span>P</span><span class="la" aria-hidden="true"><svg class="ar r" viewBox="0 0 26 10"><path d="M2 5H23M18 1.2 23 5 18 8.8"/></svg><span class="a">a</span><svg class="ar l" viewBox="0 0 26 10"><path d="M24 5H3M8 1.2 3 5 8 8.8"/></svg></span><span class="b">P</span></div>
+    <a class="logo" href="./" id="homeLink" aria-label="PaP(トップへ)"><span>P</span><span class="la" aria-hidden="true"><svg class="ar r" viewBox="0 0 26 10"><path d="M2 5H23M18 1.2 23 5 18 8.8"/></svg><span class="a">a</span><svg class="ar l" viewBox="0 0 26 10"><path d="M24 5H3M8 1.2 3 5 8 8.8"/></svg></span><span class="b">P</span></a>
     <div class="top-btns">
       <button class="icon-btn" id="qrSiteBtn" hidden aria-label="ほかの端末をつなぐ" title="ほかの端末をつなぐ(QRコード)">⌗</button>
       <button class="icon-btn" id="setBtn" hidden aria-label="設定" title="設定">⚙</button>
@@ -32,13 +32,15 @@
   <section class="screen" id="sLoading">
     <div class="spin" aria-hidden="true"></div>
     <p class="muted center">読み込み中…</p>
-    <div id="slowNote" hidden class="notice">読み込みに時間がかかっています。<button class="linkbtn" data-reload>再読み込みする</button></div>
+    <div id="slowNote" hidden class="notice">読み込みに時間がかかっています。<button class="linkbtn" data-reload>再読み込みする</button><br>直らないときは <button class="linkbtn" data-home>最初の画面にもどる</button></div>
   </section>
 
   <section class="screen" id="sError" hidden>
     <div class="hero"><p class="big">あれ?</p></div>
     <div class="notice err" id="errMsg"></div>
     <button class="btn primary" data-reload>再読み込み</button>
+    <button class="btn ghost" data-home>最初の画面にもどる</button>
+    <p class="hint center">「最初の画面にもどる」は、この端末だけペアから外れます(中身は消えません)。もう一度QRでつなげます。</p>
   </section>
 
   <section class="screen" id="sStart" hidden>
@@ -83,7 +85,7 @@
     <div class="hero"><p class="big">🔒</p></div>
     <div class="notice">このペアは <b>Google アカウントで守られています</b>。守っているアカウントでログインしてください。</div>
     <button class="btn primary google" id="lockedSignIn"><span class="g" aria-hidden="true">G</span>Google でログイン</button>
-    <button class="btn ghost" id="lockedLeave">このペアから外れる</button>
+    <button class="btn ghost" id="lockedLeave">このペアから外れて、最初の画面にもどる</button>
   </section>
 
   <section class="screen main" id="sMain" hidden>
