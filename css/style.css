@@ -176,8 +176,15 @@ blockquote.text{border-left:3px solid var(--line);padding-left:10px;color:var(--
 .dev-txt small{color:var(--muted);font-size:12px}
 .dev-row .act{color:var(--danger)}
 .code-row{display:flex;gap:8px}
-.code-row input{flex:1;min-width:0;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:20px;font-weight:800;letter-spacing:.12em;text-align:center}
-.code-row input:focus{outline:none;border-color:var(--acc)}
+.code-row input:not(.code-in){flex:1;min-width:0;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:20px;font-weight:800;letter-spacing:.12em;text-align:center}
+.code-row input:not(.code-in):focus{outline:none;border-color:var(--acc)}
+.codebox{position:relative;flex:1;min-width:0;display:flex;align-items:center;gap:4px;cursor:text}
+.code-c{flex:1;min-width:0;max-width:34px;height:44px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);display:grid;place-items:center;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:20px;font-weight:700}
+.code-c.cur{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 18%,transparent)}
+.code-dash{color:var(--muted);font-weight:700}
+.code-in{position:absolute;inset:0;width:100%;height:100%;opacity:0;border:0;font-size:16px;color:transparent;caret-color:transparent;background:none}
+.code-in::selection{background:transparent}
+.code-row .btn{height:44px;padding:0 18px}
 .code-big{margin:12px 0 0;font-family:var(--f-display);font-size:34px;letter-spacing:.1em}
 .guard{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
 .who{margin:0 0 8px;font-weight:700;overflow-wrap:anywhere}

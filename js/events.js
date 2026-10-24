@@ -168,10 +168,25 @@ $("newPairBtn").addEventListener("click", async () => {
   if (await createPair()) setTimeout(showPairQr, 400);
   $("newPairBtn").disabled = false;
 });
-$("codeIn").addEventListener("input", e => {
-  const c = cleanCode(e.target.value).slice(0, 8);
-  e.target.value = c.length > 4 ? codeText(c) : c;
+// the code goes in 8 boxes (□□□□-□□□□), one letter each; one real input lies over them.
+// Never rewrite what the keyboard typed: phone keyboards keep the word they are typing, and changing the
+// text under them makes them type it again (doubled letters). The boxes only show it in capitals.
+const codeBoxes = [];
+document.querySelectorAll(".codebox").forEach(box => {
+  const i = box.querySelector("input"), btn = $(box.dataset.btn), cells = [];
+  for (let k = 0; k < 8; k++){ if (k === 4) box.insertBefore(h("span", { class:"code-dash" }, "-"), i); const c = h("span", { class:"code-c" }); cells.push(c); box.insertBefore(c, i); }
+  const draw = () => {
+    const v = cleanCode(i.value).slice(0, 8);
+    cells.forEach((c, k) => { c.textContent = v[k] || ""; c.classList.toggle("cur", document.activeElement === i && k === Math.min(v.length, 7)); });
+    btn.disabled = v.length !== 8;
+  };
+  const toEnd = () => { const n = i.value.length; try { if (i.selectionStart !== n) i.setSelectionRange(n, n); } catch {} };
+  i.addEventListener("input", draw); i.addEventListener("blur", draw);
+  i.addEventListener("focus", () => { draw(); setTimeout(toEnd, 0); });
+  i.addEventListener("click", toEnd);
+  codeBoxes.push({ i, draw });
 });
+const clearCode = i => { i.value = ""; const b = codeBoxes.find(x => x.i === i); b && b.draw(); };
 $("codeForm").addEventListener("submit", async e => {
   e.preventDefault();
   $("codeBtn").disabled = true;
@@ -180,15 +195,11 @@ $("codeForm").addEventListener("submit", async e => {
 });
 const DANGER_EXT = /\.(exe|msi|bat|cmd|com|scr|ps1|vbs|vbe|js|jse|wsf|jar|lnk|apk|dmg|pkg|sh|app|hta|reg)$/i;
 $("toCodeBtn").addEventListener("click", () => { $("codeCard").scrollIntoView({ behavior:"smooth", block:"center" }); $("codeIn").focus(); });
-$("codeIn2").addEventListener("input", e => {
-  const c = cleanCode(e.target.value).slice(0, 8);
-  e.target.value = c.length > 4 ? codeText(c) : c;
-});
 $("codeForm2").addEventListener("submit", async e => {
   e.preventDefault();
   if (!confirm("このコードのペアにつなぎ直しますか?\n今のペアからは、この端末だけ離れます")) return;
   $("codeBtn2").disabled = true;
-  if (await useCode($("codeIn2").value, "")){ $("codeIn2").value = ""; closeSheets(); }
+  if (await useCode($("codeIn2").value, "")){ clearCode($("codeIn2")); closeSheets(); }
   $("codeBtn2").disabled = false;
 });
 $("googleFindBtn").addEventListener("click", () => googleSignIn("find"));

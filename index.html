@@ -62,8 +62,8 @@
       <p class="hint">つないである端末の右上 <b>⌗</b> を押すと、QRコードと8文字のコードが出ます。QRはカメラで読み取るだけ。ホーム画面のアプリでは、コードを入れてください。</p>
       <input class="name-in" id="codeName" maxlength="16" autocomplete="off" placeholder="この端末の名前(例:まさやのiPhone)" aria-label="この端末の名前">
       <form class="code-row" id="codeForm">
-        <input id="codeIn" placeholder="ABCD-EFGH" maxlength="9" autocapitalize="characters" autocomplete="off" spellcheck="false" aria-label="8文字のコード">
-        <button class="btn" id="codeBtn">つなぐ</button>
+        <label class="codebox" data-btn="codeBtn"><input id="codeIn" class="code-in" maxlength="12" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="8文字のコード"></label>
+        <button class="btn" disabled id="codeBtn">つなぐ</button>
       </form>
       <button class="btn ghost google" id="googleFindBtn" type="button"><span class="g" aria-hidden="true">G</span>Google で守っているペアを開く</button>
     </div>
@@ -144,8 +144,8 @@
     <div class="field stack"><span class="label">ペア</span>
       <button class="btn ghost" id="pairMoreBtn">⌗ ほかの端末をつなぐ</button>
       <form class="code-row" id="codeForm2">
-        <input id="codeIn2" placeholder="コードを入れてつなぎ直す" maxlength="9" autocapitalize="characters" autocomplete="off" spellcheck="false" aria-label="8文字のコード">
-        <button class="btn" id="codeBtn2">つなぐ</button>
+        <label class="codebox" data-btn="codeBtn2"><input id="codeIn2" class="code-in" maxlength="12" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="8文字のコード"></label>
+        <button class="btn" disabled id="codeBtn2">つなぐ</button>
       </form>
       <p class="hint">別のペアのコード(ABCD-EFGH)を入れると、この端末をそのペアにつなぎ直します。</p>
       <div class="guard" id="guardBox">
