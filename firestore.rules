@@ -126,7 +126,8 @@ service cloud.firestore {
       allow get: if signedIn() && resource.data.exp > nowMs();
       allow create: if signedIn()
         && c.matches('[A-HJ-NP-Z2-9]{8}')
-        && request.resource.data.keys().hasOnly(['key', 'exp'])
+        && request.resource.data.keys().hasOnly(['key', 'exp', 'name'])
+        && optStr(request.resource.data, 'name', 24)
         && request.resource.data.key is string
         && request.resource.data.exp is int
         && request.resource.data.exp > nowMs() && request.resource.data.exp <= nowMs() + 900000

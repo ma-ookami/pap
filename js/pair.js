@@ -74,7 +74,9 @@ async function makeCode(){
   const old = ls.get("code", null);
   if (old) S.db.doc("codes/" + old.c).delete().catch(() => {});
   const c = randomFrom(CODE_ABC, 8), exp = Date.now() + CODE_LIFE;
-  await S.db.doc("codes/" + c).set({ key:S.key, exp });
+  // the name of this device rides along, so the other side can check who it is joining
+  try { await S.db.doc("codes/" + c).set({ key:S.key, exp, name:DEV.name.slice(0, 24) }); }
+  catch { await S.db.doc("codes/" + c).set({ key:S.key, exp }); }   // rules from before the name was added
   const out = { c, exp, key:S.key };
   ls.set("code", out);
   return out;
@@ -84,6 +86,11 @@ async function joinWithCode(c){
   let s = null;
   try { s = await S.db.doc("codes/" + c).get(); } catch {}
   if (!s || !s.exists || typeof s.data().key !== "string") return null;
+  const who = str(s.data().name, 24);
+  // ask before joining: a code from a stranger would put this device's sends into their box
+  const ok = confirm(who ? `「${who}」のペアにつなぎますか?\n\nこの端末から送ったものが、そのペアに届くようになります。知っている端末の名前でなければ「キャンセル」を押してください。`
+    : "このコードのペアにつなぎますか?\n\n相手の端末の名前は分かりません。自分の端末に出たコードでなければ「キャンセル」を押してください。");
+  if (!ok) return "cancel";
   const key = s.data().key, b = S.db.batch();
   b.set(memberRef(key), { at:Date.now(), code:c });
   b.delete(S.db.doc("codes/" + c));
@@ -96,6 +103,7 @@ async function useCode(raw, name){
   if (name) ls.set("devName", name.trim().slice(0, 16));
   let key = null;
   try { key = await joinWithCode(c); } catch (e){ console.warn(e); }
+  if (key === "cancel") return false;
   if (!key){ toast("コードが違うか、期限が切れています。相手の画面でもう一度出してください", true); return false; }
   await usePair(key);
   if (S.pair === "ok") toast("つながりました");
