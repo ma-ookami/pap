@@ -58,9 +58,9 @@ a.logo{color:inherit;text-decoration:none}
 .logo .ar{position:absolute;left:50%;width:.62em;height:.2em;margin-left:-.31em;fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
 .logo .ar.r{top:0;stroke:var(--acc)}
 .logo .ar.l{bottom:0;stroke:var(--hot)}
-.logo-sub{display:inline-block;font-size:12px;font-weight:700;line-height:1;letter-spacing:.03em;color:var(--muted);white-space:nowrap;padding:6px 11px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);transform:translateY(.1em)}
-.logo-sub b{font-weight:800;color:var(--acc)}
-.logo-sub b.a{color:var(--hot)}
+.logo-sub{font-size:11px;font-weight:700;line-height:1;letter-spacing:0;word-spacing:-.15em;color:var(--muted);white-space:nowrap;transform:translateY(.1em)}
+.logo-sub b{font-weight:800;color:color-mix(in srgb,var(--acc) 70%,var(--muted))}
+.logo-sub b.a{color:color-mix(in srgb,var(--hot) 70%,var(--muted))}
 .big.logo{font-size:64px;display:flex;justify-content:center}
 .top-btns{flex:1;display:flex;justify-content:flex-end;gap:8px}
 .icon-btn{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;font-size:18px;line-height:1;padding:0}
