@@ -127,8 +127,9 @@ blockquote.text{border-left:3px solid var(--line);padding-left:10px;color:var(--
 .link{display:flex;flex-direction:column;gap:2px;text-decoration:none;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0}
 .link b{overflow-wrap:anywhere}
 .link span{color:var(--acc);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.thumb{display:block;padding:0;border:0;background:var(--bg);border-radius:12px;overflow:hidden;align-self:flex-start;max-width:100%;cursor:zoom-in}
+.thumb{display:block;padding:0;border:0;background:var(--bg);border-radius:12px;overflow:hidden;align-self:center;max-width:100%;cursor:zoom-in}
 .thumb img{display:block;max-height:230px;width:auto;height:auto;max-width:100%}
+.k-image .fname{text-align:center}
 .fname{margin:0;font-size:12px;color:var(--muted);overflow-wrap:anywhere}
 .file{display:flex;gap:12px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
 .file .ficon{font-size:28px;line-height:1}
