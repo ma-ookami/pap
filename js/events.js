@@ -75,6 +75,7 @@ async function onAct(a, it, btn){
   if (a === "expand"){ S.open[it.id] = !S.open[it.id]; return render(); }
   if (a === "view") return openViewer(it);
   if (a === "copyimg") return copyImage(loadBlob(it));
+  if (a === "save" && DANGER_EXT.test(it.name || "") && !confirm(`「${it.name}」は実行できる形式のファイルです。自分で送ったものですか?\n身に覚えがなければ「キャンセル」`)) return;
   if (a === "save") return withBusy(btn, async () => saveBlob(await loadBlob(it), it.name));
   if (a === "pin") return setPinned(it, !it.pinned).then(() => toast(it.pinned ? "📌 を外しました" : "📌 とっておきます(自動で消えません)")).catch(writeError);
   if (a === "del"){
@@ -176,6 +177,19 @@ $("codeForm").addEventListener("submit", async e => {
   $("codeBtn").disabled = true;
   await useCode($("codeIn").value, $("codeName").value.trim() || defaultDevName());
   $("codeBtn").disabled = false;
+});
+const DANGER_EXT = /\.(exe|msi|bat|cmd|com|scr|ps1|vbs|vbe|js|jse|wsf|jar|lnk|apk|dmg|pkg|sh|app|hta|reg)$/i;
+$("toCodeBtn").addEventListener("click", () => { $("codeCard").scrollIntoView({ behavior:"smooth", block:"center" }); $("codeIn").focus(); });
+$("codeIn2").addEventListener("input", e => {
+  const c = cleanCode(e.target.value).slice(0, 8);
+  e.target.value = c.length > 4 ? codeText(c) : c;
+});
+$("codeForm2").addEventListener("submit", async e => {
+  e.preventDefault();
+  if (!confirm("このコードのペアにつなぎ直しますか?\n今のペアからは、この端末だけ離れます")) return;
+  $("codeBtn2").disabled = true;
+  if (await useCode($("codeIn2").value, "")){ $("codeIn2").value = ""; closeSheets(); }
+  $("codeBtn2").disabled = false;
 });
 $("googleFindBtn").addEventListener("click", () => googleSignIn("find"));
 $("lockedSignIn").addEventListener("click", () => googleSignIn("find"));

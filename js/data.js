@@ -10,7 +10,7 @@ function cleanItem(id, d){
     name:str(d.name, NAME_MAX), mime:str(d.mime, 100), size:num(d.size) || 0, parts:num(d.parts) || 0,
     thumb:/^data:image\/(jpeg|png|webp);base64,/.test(d.thumb || "") ? d.thumb : "", w:num(d.w) || 0, h:num(d.h) || 0,
     from:str(d.from, 24) || "?", did:str(d.did, 40), dev:d.dev === "phone" ? "phone" : "pc",
-    pinned:d.pinned === true, ready:d.ready !== false,
+    pinned:d.pinned === true, seen:num(d.seen) || 0, ready:d.ready !== false,
   };
 }
 // everything lives under pairs/<key>
@@ -114,6 +114,16 @@ async function deleteItem(it){
   b.delete(pdoc("items/" + it.id));
   await b.commit();
   blobCache.delete(it.id);
+}
+// the other device opened it: "✓ 既読" on the sender's card (needs the rule that lets "seen" change)
+const marked = new Set();
+function markSeen(){
+  if (document.hidden || S.pair !== "ok") return;
+  for (const it of S.items.concat(S.pinned)){
+    if (it.did === DEV.id || !it.ready || it.seen || marked.has(it.id)) continue;
+    marked.add(it.id);
+    pdoc("items/" + it.id).update({ seen:Date.now() }).catch(() => {});
+  }
 }
 function setPinned(it, on){ return pdoc("items/" + it.id).update({ pinned:on }); }
 function setKeep(k){ return S.db.doc("pairs/" + S.key).update({ keep:k }); }

@@ -23,6 +23,7 @@
 <div class="wrap">
   <header class="top">
     <a class="logo" href="./" id="homeLink" aria-label="PaP(トップへ)"><span>P</span><span class="la" aria-hidden="true"><svg class="ar r" viewBox="0 0 26 10"><path d="M2 5H23M18 1.2 23 5 18 8.8"/></svg><span class="a">a</span><svg class="ar l" viewBox="0 0 26 10"><path d="M24 5H3M8 1.2 3 5 8 8.8"/></svg></span><span class="b">P</span></a>
+    <span class="logo-sub" aria-hidden="true">PC and Phone</span>
     <div class="top-btns">
       <button class="icon-btn" id="qrSiteBtn" hidden aria-label="ほかの端末をつなぐ" title="ほかの端末をつなぐ(QRコード)">⌗</button>
       <button class="icon-btn" id="setBtn" hidden aria-label="設定" title="設定">⚙</button>
@@ -54,8 +55,9 @@
       <span class="label">はじめての1台目</span>
       <button class="btn primary" id="newPairBtn">新しくはじめる</button>
       <p class="hint">あとはもう1台で、この端末に出るQRコードを読み取るだけです。</p>
+      <button class="linkbtn" type="button" id="toCodeBtn">QRと一緒に出るコードを持っている → 入力する</button>
     </div>
-    <div class="card stack">
+    <div class="card stack" id="codeCard">
       <span class="label">もう1台とつなぐ</span>
       <p class="hint">つないである端末の右上 <b>⌗</b> を押すと、QRコードと8文字のコードが出ます。QRはカメラで読み取るだけ。ホーム画面のアプリでは、コードを入れてください。</p>
       <input class="name-in" id="codeName" maxlength="16" autocomplete="off" placeholder="この端末の名前(例:まさやのiPhone)" aria-label="この端末の名前">
@@ -76,6 +78,7 @@
       <label class="field"><span class="label">この端末の名前</span>
         <input id="joinName" maxlength="16" autocomplete="off" required></label>
       <p class="hint">つながっている端末の画面に、この名前が出ます(例:まさやのiPhone)。</p>
+      <div class="notice err">この端末は、<b>相手のペアに加わり</b>、ここから送ったものがそのペアに届くようになります。<b>自分の端末に出たQR・コードのときだけ</b>つないでください。知らない人からのQRやリンクなら「やめる」を押してください。</div>
       <button class="btn primary" id="joinBtn">この名前でつなぐ</button>
       <button class="linkbtn" type="button" id="joinCancel">やめる</button>
     </form>
@@ -140,6 +143,11 @@
       <p class="hint">iPhone:Safari の共有ボタン →「ホーム画面に追加」。Android:Chrome の「︙」→「ホーム画面に追加」。iPhone のホーム画面アプリは Safari と別扱いなので、最初に一度コードを入れてつなぎます。Android ではほかのアプリの「共有」からPaPに送れるようになります。</p></div>
     <div class="field stack"><span class="label">ペア</span>
       <button class="btn ghost" id="pairMoreBtn">⌗ ほかの端末をつなぐ</button>
+      <form class="code-row" id="codeForm2">
+        <input id="codeIn2" placeholder="コードを入れてつなぎ直す" maxlength="9" autocapitalize="characters" autocomplete="off" spellcheck="false" aria-label="8文字のコード">
+        <button class="btn" id="codeBtn2">つなぐ</button>
+      </form>
+      <p class="hint">別のペアのコード(ABCD-EFGH)を入れると、この端末をそのペアにつなぎ直します。</p>
       <div class="guard" id="guardBox">
         <p class="who" id="guardText"></p>
         <p class="hint" id="guardHint"></p>

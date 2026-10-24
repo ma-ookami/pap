@@ -26,6 +26,9 @@ function readCode(){
 }
 async function sendPending(){
   const p = pendingAdd; pendingAdd = null;
+  // any web page can open this address, so nothing is sent without a look first (keeps strangers' links out of the box)
+  const peek = [p.title, p.url || p.text].filter(Boolean).join(" / ").slice(0, 200);
+  if (!confirm("次の内容を送りますか?\n\n" + peek + "\n\n身に覚えがないときは「キャンセル」")) return;
   const n = p.url ? await sendAll({ page:p }) : await sendAll({ text:[p.title, p.text].filter(Boolean).join("\n") });
   // the bookmarklet's little window closes itself once sent
   if (n && p.popup && window.opener){ toast("送りました。このウィンドウは閉じます"); setTimeout(() => window.close(), 1300); }

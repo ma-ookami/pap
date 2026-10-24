@@ -46,6 +46,7 @@ function renderMain(){
   $("empty").innerHTML = q ? "見つかりませんでした。" : "まだ何もありません。<br>コピーした文字や写真を送ってみましょう。";
   $("moreBtn").hidden = !S.hasMore || !!q;
   $("search").hidden = S.items.length + S.pinned.length < 6 && !q;
+  markSeen();
   $("keepNote").textContent = S.keep ? `${KEEP_LABEL[S.keep]}たったものは自動で消えます(📌 は残ります)` : "";
 }
 function renderSend(){
@@ -92,6 +93,7 @@ function buildCard(it){
   const meta = h("div", { class:"meta" },
     h("span", { class:"dev" }, (it.dev === "phone" ? "📱 " : "💻 ") + it.from),
     h("span", { class:"when", title:new Date(it.at).toLocaleString("ja-JP") }, agoText(it.at)),
+    it.did === DEV.id && it.seen ? h("span", { class:"seen", title:"相手が開きました:" + new Date(it.seen).toLocaleString("ja-JP") }, "✓ 既読") : null,
     fresh ? h("span", { class:"new" }, "NEW") : null);
   const body = [], acts = [];
   const act = (a, label, cls, title) => h("button", { type:"button", class:"act" + (cls ? " " + cls : ""), "data-act":a, title:title || null, "aria-label":title || null }, label);

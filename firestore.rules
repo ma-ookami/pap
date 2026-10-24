@@ -103,10 +103,11 @@ service cloud.firestore {
       match /items/{id} {
         allow read, delete: if canUse(k);
         allow create: if canUse(k) && validItem(request.resource.data);
-        // only 📌 and "送信中 → 届いた" change afterwards
+        // only 📌, "送信中 → 届いた" and 既読(seen) change afterwards
         allow update: if canUse(k)
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pinned', 'ready'])
-          && request.resource.data.pinned is bool && request.resource.data.ready is bool;
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pinned', 'ready', 'seen'])
+          && request.resource.data.pinned is bool && request.resource.data.ready is bool
+          && (!('seen' in request.resource.data) || request.resource.data.seen is int);
       }
 
       // the pieces of a file: blobs/<item id>_<0..14>
