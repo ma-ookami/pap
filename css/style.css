@@ -29,6 +29,7 @@ html{scrollbar-gutter:stable}
 body{color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;-webkit-tap-highlight-color:transparent;overflow-x:clip}
 body.sheet-open{overflow:hidden}
 button,input,textarea{font:inherit;color:inherit}
+input,textarea{font-size:16px}   /* under 16px, iPhone zooms the page in when the field is tapped */
 button{cursor:pointer}
 button:disabled{cursor:default}
 :focus-visible{outline:3px solid var(--acc);outline-offset:2px}
@@ -57,7 +58,11 @@ a.logo{color:inherit;text-decoration:none}
 .logo .ar{position:absolute;left:50%;width:.62em;height:.2em;margin-left:-.31em;fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
 .logo .ar.r{top:0;stroke:var(--acc)}
 .logo .ar.l{bottom:0;stroke:var(--hot)}
-.logo-sub{font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--muted);white-space:nowrap}
+.logo-sub{display:flex;align-items:center;gap:.55em;font-size:12px;font-weight:800;line-height:1;letter-spacing:.02em;color:var(--muted);white-space:nowrap;transform:translateY(.1em)}
+.logo-sub .g{display:inline-flex;align-items:center}
+.logo-sub b{display:grid;place-items:center;width:1.4em;height:1.4em;margin-right:.05em;border-radius:7px;font-weight:800;color:var(--acc-ink)}
+.logo-sub b.p{background:var(--acc)}
+.logo-sub b.a{background:var(--hot);color:var(--hot-ink)}
 .big.logo{font-size:64px;display:flex;justify-content:center}
 .top-btns{flex:1;display:flex;justify-content:flex-end;gap:8px}
 .icon-btn{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;font-size:18px;line-height:1;padding:0}
